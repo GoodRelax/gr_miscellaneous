@@ -101,6 +101,21 @@ print("state = /\\")  # ❌ Forbidden!
 - Do not split these symbolic sequences into separate constants or literals during string assembly.
 - Treat the whole sequence as a single logical unit and define it once at the top of the script.
 
+### 8. Set vs List
+
+- Use `List` by default. Use `Set` only when duplicates must be removed and element order is irrelevant.
+- Prefer `Set` when performing set operations such as union or intersection, with confirmation from the spec owner.
+- If the order of elements matters — including for output — `List` must be used.
+- Use `sorted()` only with clear purpose. Typical cases include display formatting, debug output, or stable diffs.
+- Examples:
+
+```python
+events: List[str] = ["Init", "Run", "Finish"]   # Good: order matters
+unique_tags: Set[str] = {"A", "B", "C"}         # Good: duplicate elimination, order irrelevant (confirmed)
+for e in events:                                # Good: preserves original order
+for e in set(events):                           # Bad:  converting List to Set loses order without warning
+```
+
 ---
 
 ## 📊 Code Review Checklist
@@ -116,7 +131,7 @@ print("state = /\\")  # ❌ Forbidden!
 - [ ] Are direct literals limited only to pure English word labels?
 
 **Check each line against this checklist immediately after generating it.**
-**If any violation is found, correct it using predefined constants.**  
+**If any violation is found, correct it using predefined constants.**
 **Review the code from bottom to top, then top to bottom, and repeat until every line passes the checklist.**
 
 ---
@@ -129,3 +144,7 @@ print("state = /\\")  # ❌ Forbidden!
 > ⚡ "Allow only direct English words without escapes!"
 > ⚡ "Assemble output using only constants, variables, and escape-free literals!"
 > ⚡ "f-strings and raw strings are strictly prohibited."
+
+```
+
+```
