@@ -248,7 +248,7 @@ classDiagram
     class Battery
     class Wiper
     TempSensor      &lt;--         TempGauge :    refers to<br/>(単方向関連)
-    Battery    "1"  &lt;.. "*"     Wiper :        temporally<br/>uses<br/>(依存)
+    Battery    "1"  &lt;.. "*"     Wiper :        temporary<br/>uses<br/>(一時的依存)
                 </pre>
             </div>
 
@@ -289,7 +289,7 @@ classDiagram
                         <td>低</td>
                         <td>実現</td>
                         <td>implements（実装する）</td>
-                        <td>インターフェースの実装。言語によってはインターフェースに<code>I</code>を付ける（例：<code>IMotor</code>）。</td>
+                        <td>インターフェースの実装。言語によってはインターフェース名に<code>I</code>を付ける（例：<code>IMotor</code>）。</td>
                     </tr>
                     <tr>
                         <td><code>--</code></td>
@@ -315,8 +315,8 @@ classDiagram
                     <tr>
                         <td><code>..&gt;</code></td>
                         <td>低</td>
-                        <td>依存</td>
-                        <td>depends on / uses（依存する / 使用する）</td>
+                        <td>一時的依存</td>
+                        <td>temporary uses（一時的に依存する / 使用する）</td>
                         <td>一時的な依存関係。使用するが所有はしない。</td>
                     </tr>
                     <tr>

@@ -223,7 +223,7 @@ classDiagram
     class Battery
     class Wiper
     TempSensor      &lt;--         TempGauge :    refers to<br/>(Directed<br/>Association)
-    Battery    "1"  &lt;.. "*"     Wiper :        temporally<br/>uses<br/>(Temporal<br/>Dependency)
+    Battery    "1"  &lt;.. "*"     Wiper :        temporary<br/>uses<br/>(temporary<br/>Dependency)
                 </pre>
             </div>
 
@@ -290,9 +290,9 @@ classDiagram
                     <tr>
                         <td><code>..&gt;</code></td>
                         <td>Low</td>
-                        <td>Dependency</td>
+                        <td>Temporary Dependency</td>
                         <td>depends on / uses</td>
-                        <td>Temporary dependency; uses but does not own.</td>
+                        <td>Temporary dependency;uses but does not own.</td>
                     </tr>
                     <tr>
                         <td><code>--*</code></td>
