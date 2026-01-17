@@ -210,8 +210,8 @@ classDiagram
     class Speaker
     class Engine
     class Transmission
-    Microphone      --          Speaker :      are related<br/>each other<br/>(Association)
-    Engine          &lt;--&gt;        Transmission : are linked<br/>together<br/>(Bidirectional<br/>Association)
+    Microphone      --          Speaker :      are associated<br/>(Association)
+    Engine          &lt;--&gt;        Transmission : are interdependent<br/>(Bidirectional<br/>Association)
                 </pre>
             </div>
 
@@ -223,7 +223,7 @@ classDiagram
     class Battery
     class Wiper
     TempSensor      &lt;--         TempGauge :    refers to<br/>(Directed<br/>Association)
-    Battery    "1"  &lt;.. "*"     Wiper :        temporary<br/>uses<br/>(temporary<br/>Dependency)
+    Battery    "1"  &lt;.. "*"     Wiper :        uses<br/>(Temporary<br/>Dependency)
                 </pre>
             </div>
 
@@ -270,14 +270,14 @@ classDiagram
                         <td><code>--</code></td>
                         <td>Mid</td>
                         <td>Association</td>
-                        <td>are related to each other</td>
+                        <td>are associated</td>
                         <td>Some kind of relationship; direction is ambiguous, so not recommended.</td>
                     </tr>
                     <tr>
                         <td><code>&lt;--&gt;</code></td>
                         <td>High</td>
-                        <td>Association</td>
-                        <td>are linked together</td>
+                        <td>Bidirectional Association</td>
+                        <td>are interdependent</td>
                         <td>Bidirectional relationship; they reference each other; introduce an interface to achieve loose coupling.</td>
                     </tr>
                     <tr>
@@ -291,7 +291,7 @@ classDiagram
                         <td><code>..&gt;</code></td>
                         <td>Low</td>
                         <td>Temporary Dependency</td>
-                        <td>depends on / uses</td>
+                        <td>uses</td>
                         <td>Temporary dependency;uses but does not own.</td>
                     </tr>
                     <tr>

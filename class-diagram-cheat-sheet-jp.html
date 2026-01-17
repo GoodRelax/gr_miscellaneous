@@ -235,8 +235,8 @@ classDiagram
     class Speaker
     class Engine
     class Transmission
-    Microphone      --          Speaker :      are related<br/>each other<br/>(関連)
-    Engine          &lt;--&gt;        Transmission : are linked<br/>together<br/>(双方向関連)
+    Microphone      --          Speaker :      are associated<br/>(関連)
+    Engine          &lt;--&gt;        Transmission : are interdependent<br/>(双方向関連)
                 </pre>
             </div>
 
@@ -248,7 +248,7 @@ classDiagram
     class Battery
     class Wiper
     TempSensor      &lt;--         TempGauge :    refers to<br/>(単方向関連)
-    Battery    "1"  &lt;.. "*"     Wiper :        temporary<br/>uses<br/>(一時的依存)
+    Battery    "1"  &lt;.. "*"     Wiper :        uses<br/>(一時的依存)
                 </pre>
             </div>
 
@@ -295,14 +295,14 @@ classDiagram
                         <td><code>--</code></td>
                         <td>中</td>
                         <td>関連</td>
-                        <td>are related to each other（互いに関連している）</td>
+                        <td>are associated（互いに関連している）</td>
                         <td>何らかの関係性。方向が曖昧なため非推奨。</td>
                     </tr>
                     <tr>
                         <td><code>&lt;--&gt;</code></td>
                         <td>高</td>
                         <td>双方向関連</td>
-                        <td>are linked together（互いに結びついている）</td>
+                        <td>are interdependent（互いに結びついている）</td>
                         <td>双方向の関係。互いに参照し合う。疎結合にするにはインターフェースを導入する。</td>
                     </tr>
                     <tr>
@@ -316,7 +316,7 @@ classDiagram
                         <td><code>..&gt;</code></td>
                         <td>低</td>
                         <td>一時的依存</td>
-                        <td>temporary uses（一時的に依存する / 使用する）</td>
+                        <td>uses（使用する）</td>
                         <td>一時的な依存関係。使用するが所有はしない。</td>
                     </tr>
                     <tr>
