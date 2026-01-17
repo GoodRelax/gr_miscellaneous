@@ -7,12 +7,14 @@
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
 
+    // Detect dark mode and set mermaid theme
     const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     mermaid.initialize({
       startOnLoad: false,
       theme: isDark ? 'dark' : 'default'
     });
 
+    // Initialize mermaid after DOM is ready
     document.addEventListener('DOMContentLoaded', async () => {
       await mermaid.run({
         querySelector: '.mermaid'
@@ -26,6 +28,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', (event) => {
+      // Only highlight code blocks, not mermaid diagrams
       document.querySelectorAll('pre code.language-cpp, pre code.language-javascript, pre code.language-python').forEach((el) => {
         hljs.highlightElement(el);
       });
@@ -160,10 +163,16 @@
       justify-content: center;
     }
 
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      margin-bottom: 2rem;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 2rem;
+      margin-top: 0;
       background: var(--bg-color);
       border-radius: 8px;
       overflow: hidden;
@@ -189,11 +198,11 @@
       white-space: nowrap;
     }
 
-    th:nth-child(1) { width: 10%; }
-    th:nth-child(2) { width: 10%; }
-    th:nth-child(3) { width: 15%; }
-    th:nth-child(4) { width: 25%; }
-    th:nth-child(5) { width: 40%; }
+    th:nth-child(1) { width: 10%; }   /* 記法 */
+    th:nth-child(2) { width: 10%; }   /* 結合度 */
+    th:nth-child(3) { width: 15%; }   /* 用語 */
+    th:nth-child(4) { width: 25%; }   /* 読み方 */
+    th:nth-child(5) { width: 40%; }   /* 説明 */
 
     td {
       padding: 0.875rem 1rem;
@@ -244,33 +253,47 @@
       margin-bottom: 2rem;
     }
 
+    /* Responsive */
     @media (max-width: 768px) {
       body {
         padding: 1rem 0.5rem;
       }
+
       .copyright {
         font-size: 0.65rem;
         top: 0.25rem;
         right: 0.25rem;
       }
+
       h1 {
         font-size: 1.5rem;
       }
+
       .diagrams-grid {
         grid-template-columns: 1fr;
       }
+
       .diagram-container,
       .single-diagram {
         padding: 1rem;
         min-height: auto;
       }
+
       table {
         font-size: 0.85rem;
         table-layout: auto;
       }
+
       th, td {
         padding: 0.625rem 0.5rem;
       }
+
+      th:nth-child(1) { width: auto; }
+      th:nth-child(2) { width: auto; }
+      th:nth-child(3) { width: auto; }
+      th:nth-child(4) { width: auto; }
+      th:nth-child(5) { width: auto; }
+
       .table-wrapper {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
@@ -355,14 +378,14 @@ Car        "1"  o-- "4..5"  Tire :         belongs to<br/>(集約)</pre>
             <td><code>--</code></td>
             <td>中</td>
             <td>関連</td>
-            <td>are associated</td>
+            <td>are associated（互いに関連している）</td>
             <td>何らかの関係性。方向が曖昧なため非推奨。</td>
           </tr>
           <tr>
             <td><code>&lt;--&gt;</code></td>
             <td>高</td>
             <td>双方向関連</td>
-            <td>are interdependent</td>
+            <td>are interdependent（互いに結びついている）</td>
             <td>双方向の関係。互いに参照し合う。疎結合にするにはインターフェースを導入する。</td>
           </tr>
           <tr>
@@ -399,6 +422,29 @@ Car        "1"  o-- "4..5"  Tire :         belongs to<br/>(集約)</pre>
 
     <hr>
     <h2>1. 汎化 (Generalization) - is a</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>記法</th>
+            <th>結合度</th>
+            <th>用語</th>
+            <th>読み方</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--｜&gt;</code></td>
+            <td>高</td>
+            <td>汎化</td>
+            <td>is a（〜である）</td>
+            <td>継承関係。サブクラスがスーパークラスの機能を継承する。逆から見れば汎化関係。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <div class="single-diagram">
       <pre class="mermaid">classDiagram
 class Vehicle
@@ -427,7 +473,7 @@ public:
 
 int main() {
   SUV suv;
-  suv.move();
+  suv.move();     // Vehicleから継承
   suv.offRoad();
   return 0;
 }</code></pre>
@@ -446,7 +492,7 @@ class SUV extends Vehicle {
 }
 
 const suv = new SUV();
-suv.move();
+suv.move();     // Vehicleから継承
 suv.offRoad();</code></pre>
 
       <pre data-language="Python"><code class="language-python"># 汎化: SUVはVehicleである
@@ -459,12 +505,35 @@ class SUV(Vehicle):
     print("SUV off-roading")
 
 suv = SUV()
-suv.move()
+suv.move()      # Vehicleから継承
 suv.off_road()</code></pre>
     </div>
 
     <hr>
     <h2>2. 実現 (Realization) - implements</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>記法</th>
+            <th>結合度</th>
+            <th>用語</th>
+            <th>読み方</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>..｜&gt;</code></td>
+            <td>低</td>
+            <td>実現</td>
+            <td>implements（実装する）</td>
+            <td>インターフェースの実装。言語によってはインターフェース名に<code>I</code>を付ける（例：<code>IMotor</code>）。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <div class="single-diagram">
       <pre class="mermaid">classDiagram
 class Rotatable { &lt;&lt;interface&gt;&gt; }
@@ -474,11 +543,13 @@ Rotatable &lt;|.. Motor : implements (実現)</pre>
 
     <div class="code-section">
       <pre data-language="C++"><code class="language-cpp">#include &lt;iostream&gt;
+
 using namespace std;
 
+// 実現: Motorはインターフェース Rotatable を実装する
 class Rotatable {
 public:
-  virtual void rotate() = 0;
+  virtual void rotate() = 0;  // 純粋仮想関数（インターフェース）
   virtual ~Rotatable() {}
 };
 
@@ -495,7 +566,9 @@ int main() {
   return 0;
 }</code></pre>
 
-      <pre data-language="JavaScript"><code class="language-javascript">class Rotatable {
+      <pre data-language="JavaScript"><code class="language-javascript">// 実現: Motorはインターフェース Rotatable を実装する
+
+class Rotatable {
   rotate() {
     throw new Error("Must implement rotate()");
   }
@@ -512,6 +585,8 @@ motor.rotate();</code></pre>
 
       <pre data-language="Python"><code class="language-python">from abc import ABC, abstractmethod
 
+# 実現: Motorはインターフェース Rotatable を実装する
+
 class Rotatable(ABC):
   @abstractmethod
   def rotate(self):
@@ -526,7 +601,30 @@ motor.rotate()</code></pre>
     </div>
 
     <hr>
-    <h2>3. 双方向関連 (Bidirectional Association)</h2>
+    <h2>3. 双方向関連 (Bidirectional Association) - are interdependent</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>記法</th>
+            <th>結合度</th>
+            <th>用語</th>
+            <th>読み方</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>&lt;--&gt;</code></td>
+            <td>高</td>
+            <td>双方向関連</td>
+            <td>are interdependent（互いに結びついている）</td>
+            <td>双方向の関係。互いに参照し合う。疎結合にするにはインターフェースを導入する。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <div class="single-diagram">
       <pre class="mermaid">classDiagram
 class Engine
@@ -536,10 +634,12 @@ Engine &lt;--&gt; Transmission : are interdependent (双方向関連)</pre>
 
     <div class="code-section">
       <pre data-language="C++"><code class="language-cpp">#include &lt;iostream&gt;
+
 using namespace std;
 
 class Transmission;
 
+// 双方向関連: EngineとTransmissionは互いに参照し合う
 class Engine {
 private:
   Transmission* transmission;
@@ -561,20 +661,26 @@ public:
 int main() {
   Engine engine;
   Transmission transmission;
-  engine.setTransmission(&transmission);
-  transmission.setEngine(&engine);
+
+  engine.setTransmission(&amp;transmission);
+  transmission.setEngine(&amp;engine);
+
   engine.run();
   transmission.shift();
   return 0;
 }</code></pre>
 
-      <pre data-language="JavaScript"><code class="language-javascript">class Engine {
+      <pre data-language="JavaScript"><code class="language-javascript">// 双方向関連: EngineとTransmissionは互いに参照し合う
+
+class Engine {
   constructor() {
     this.transmission = null;
   }
+
   setTransmission(transmission) {
     this.transmission = transmission;
   }
+
   run() {
     console.log("Engine running");
   }
@@ -584,9 +690,11 @@ class Transmission {
   constructor() {
     this.engine = null;
   }
+
   setEngine(engine) {
     this.engine = engine;
   }
+
   shift() {
     console.log("Transmission shifting");
   }
@@ -594,12 +702,16 @@ class Transmission {
 
 const engine = new Engine();
 const transmission = new Transmission();
+
 engine.setTransmission(transmission);
 transmission.setEngine(engine);
+
 engine.run();
 transmission.shift();</code></pre>
 
-      <pre data-language="Python"><code class="language-python">class Engine:
+      <pre data-language="Python"><code class="language-python"># 双方向関連: EngineとTransmissionは互いに参照し合う
+
+class Engine:
   def __init__(self):
     self.transmission = None
 
@@ -621,14 +733,39 @@ class Transmission:
 
 engine = Engine()
 transmission = Transmission()
+
 engine.set_transmission(transmission)
 transmission.set_engine(engine)
+
 engine.run()
 transmission.shift()</code></pre>
     </div>
 
     <hr>
-    <h2>4. 単方向関連 (Directed Association)</h2>
+    <h2>4. 単方向関連 (Directed Association) - refers to</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>記法</th>
+            <th>結合度</th>
+            <th>用語</th>
+            <th>読み方</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--&gt;</code></td>
+            <td>中</td>
+            <td>単方向関連</td>
+            <td>refers to（参照する）</td>
+            <td>単方向の関係。参照する側 → 参照される側。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <div class="single-diagram">
       <pre class="mermaid">classDiagram
 class TempSensor
@@ -638,8 +775,10 @@ TempSensor &lt;-- TempGauge : refers to (単方向関連)</pre>
 
     <div class="code-section">
       <pre data-language="C++"><code class="language-cpp">#include &lt;iostream&gt;
+
 using namespace std;
 
+// 単方向関連: TempGaugeはTempSensorを参照する
 class TempSensor {
 private:
   int temperature;
@@ -654,21 +793,24 @@ private:
 public:
   TempGauge(TempSensor* s) : sensor(s) {}
   void display() {
-    cout << "Temperature: " << sensor->getTemperature() << "C" << endl;
+    cout << "Temperature: " << sensor-&gt;getTemperature() << "C" << endl;
   }
 };
 
 int main() {
   TempSensor sensor;
-  TempGauge gauge(&sensor);
+  TempGauge gauge(&amp;sensor);
   gauge.display();
   return 0;
 }</code></pre>
 
-      <pre data-language="JavaScript"><code class="language-javascript">class TempSensor {
+      <pre data-language="JavaScript"><code class="language-javascript">// 単方向関連: TempGaugeはTempSensorを参照する
+
+class TempSensor {
   constructor() {
     this.temperature = 25;
   }
+
   getTemperature() {
     return this.temperature;
   }
@@ -678,6 +820,7 @@ class TempGauge {
   constructor(sensor) {
     this.sensor = sensor;
   }
+
   display() {
     console.log(`Temperature: ${this.sensor.getTemperature()}C`);
   }
@@ -687,7 +830,9 @@ const sensor = new TempSensor();
 const gauge = new TempGauge(sensor);
 gauge.display();</code></pre>
 
-      <pre data-language="Python"><code class="language-python">class TempSensor:
+      <pre data-language="Python"><code class="language-python"># 単方向関連: TempGaugeはTempSensorを参照する
+
+class TempSensor:
   def __init__(self):
     self.temperature = 25
 
@@ -707,7 +852,30 @@ gauge.display()</code></pre>
     </div>
 
     <hr>
-    <h2>5. 一時的依存 (Temporal Dependency)</h2>
+    <h2>5. 一時的依存 (Temporal Dependency) - uses</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>記法</th>
+            <th>結合度</th>
+            <th>用語</th>
+            <th>読み方</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>..&gt;</code></td>
+            <td>低</td>
+            <td>一時的依存</td>
+            <td>uses（使用する）</td>
+            <td>一時的な依存関係。使用するが所有はしない。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <div class="single-diagram">
       <pre class="mermaid">classDiagram
 class Battery
@@ -717,8 +885,10 @@ Battery "1" &lt;.. "*" Wiper : uses (一時的依存)</pre>
 
     <div class="code-section">
       <pre data-language="C++"><code class="language-cpp">#include &lt;iostream&gt;
+
 using namespace std;
 
+// 一時的依存: WiperはBatteryを一時的に使用する
 class Battery {
 public:
   void providePower() {
@@ -728,7 +898,7 @@ public:
 
 class Wiper {
 public:
-  void wipe(Battery& battery) {
+  void wipe(Battery&amp; battery) {  // 使用するが所有しない
     battery.providePower();
     cout << "Wiper wiping" << endl;
   }
@@ -737,18 +907,20 @@ public:
 int main() {
   Battery battery;
   Wiper wiper;
-  wiper.wipe(battery);
+  wiper.wipe(battery);  // 一時的な使用
   return 0;
 }</code></pre>
 
-      <pre data-language="JavaScript"><code class="language-javascript">class Battery {
+      <pre data-language="JavaScript"><code class="language-javascript">// 一時的依存: WiperはBatteryを一時的に使用する
+
+class Battery {
   providePower() {
     console.log("Battery providing power");
   }
 }
 
 class Wiper {
-  wipe(battery) {
+  wipe(battery) {  // 使用するが所有しない
     battery.providePower();
     console.log("Wiper wiping");
   }
@@ -756,24 +928,49 @@ class Wiper {
 
 const battery = new Battery();
 const wiper = new Wiper();
-wiper.wipe(battery);</code></pre>
+wiper.wipe(battery);  // 一時的な使用</code></pre>
 
-      <pre data-language="Python"><code class="language-python">class Battery:
+      <pre data-language="Python"><code class="language-python"># 一時的依存: WiperはBatteryを一時的に使用する
+
+class Battery:
   def provide_power(self):
     print("Battery providing power")
 
 class Wiper:
-  def wipe(self, battery):
+  def wipe(self, battery):  # 使用するが所有しない
     battery.provide_power()
     print("Wiper wiping")
 
 battery = Battery()
 wiper = Wiper()
-wiper.wipe(battery)</code></pre>
+wiper.wipe(battery)  # 一時的な使用</code></pre>
     </div>
 
     <hr>
-    <h2>6. コンポジション (Composition)</h2>
+    <h2>6. コンポジション (Composition) - composes</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>記法</th>
+            <th>結合度</th>
+            <th>用語</th>
+            <th>読み方</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--*</code></td>
+            <td>高</td>
+            <td>コンポジション</td>
+            <td>composes（構成する）</td>
+            <td>強い所有関係。全体が破壊されると部分も破壊される。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <div class="single-diagram">
       <pre class="mermaid">classDiagram
 class Door
@@ -783,8 +980,10 @@ Door "1" *-- "1..2" Window : composes (コンポジション)</pre>
 
     <div class="code-section">
       <pre data-language="C++"><code class="language-cpp">#include &lt;iostream&gt;
+
 using namespace std;
 
+// コンポジション: DoorはWindowを所有する（強い所有関係）
 class Window {
 public:
   Window() { cout << "Window created" << endl; }
@@ -794,7 +993,7 @@ public:
 
 class Door {
 private:
-  Window window;
+  Window window;  // Doorに所有される
 public:
   Door() { cout << "Door created" << endl; }
   ~Door() { cout << "Door destroyed" << endl; }
@@ -805,15 +1004,18 @@ int main() {
   {
     Door door;
     door.openWindow();
-  }
+  }  // Doorが破壊される → Windowも自動的に破壊される
   cout << "End of program" << endl;
   return 0;
 }</code></pre>
 
-      <pre data-language="JavaScript"><code class="language-javascript">class Window {
+      <pre data-language="JavaScript"><code class="language-javascript">// コンポジション: DoorはWindowを所有する（強い所有関係）
+
+class Window {
   constructor() {
     console.log("Window created");
   }
+
   open() {
     console.log("Window opening");
   }
@@ -822,36 +1024,44 @@ int main() {
 class Door {
   constructor() {
     console.log("Door created");
-    this.window = new Window();
+    this.window = new Window();  // Doorに所有される
   }
+
   openWindow() {
     this.window.open();
   }
 }
 
 const door = new Door();
-door.openWindow();</code></pre>
+door.openWindow();
+// doorがガベージコレクションされると、windowも回収される</code></pre>
 
-      <pre data-language="Python"><code class="language-python">class Window:
+      <pre data-language="Python"><code class="language-python"># コンポジション: DoorはWindowを所有する（強い所有関係）
+
+class Window:
   def __init__(self):
     print("Window created")
+
   def __del__(self):
     print("Window destroyed")
+
   def open(self):
     print("Window opening")
 
 class Door:
   def __init__(self):
     print("Door created")
-    self.window = Window()
+    self.window = Window()  # Doorに所有される
+
   def __del__(self):
     print("Door destroyed")
+
   def open_window(self):
     self.window.open()
 
 door = Door()
 door.open_window()
-del door
+del door  # Doorが破壊される → Windowも自動的に破壊される
 print("End of program")</code></pre>
     </div>
   </div>
