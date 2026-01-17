@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クラス図 チートシート</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        
+        // Detect dark mode and set mermaid theme
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default'
+        });
+    </script>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #1a1a1a;
+            --border-color: #e0e0e0;
+            --header-bg: #f5f5f5;
+            --code-bg: #f8f8f8;
+            --accent-color: #0066cc;
+            --hover-bg: #fafafa;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a1a;
+                --text-color: #e0e0e0;
+                --border-color: #404040;
+                --header-bg: #2a2a2a;
+                --code-bg: #2d2d2d;
+                --accent-color: #4da6ff;
+                --hover-bg: #252525;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', Meiryo, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .copyright {
+            position: fixed;
+            top: 0.5rem;
+            right: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-color);
+            opacity: 0.6;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--accent-color);
+        }
+
+        .diagrams-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .diagram-container {
+            background: var(--code-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+            background: var(--bg-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            table-layout: fixed;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            table {
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        thead {
+            background: var(--header-bg);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        th:nth-child(1) { width: 10%; }   /* 記法 */
+        th:nth-child(2) { width: 10%; }   /* 結合度 */
+        th:nth-child(3) { width: 15%; }   /* 用語 */
+        th:nth-child(4) { width: 25%; }   /* 読み方 */
+        th:nth-child(5) { width: 40%; }   /* 説明 */
+
+        td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        td:nth-child(1),
+        td:nth-child(2),
+        td:nth-child(3) {
+            white-space: nowrap;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: var(--hover-bg);
+        }
+
+        code {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+            background: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+
+            .copyright {
+                font-size: 0.65rem;
+                top: 0.25rem;
+                right: 0.25rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .diagrams-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .diagram-container {
+                padding: 1rem;
+                min-height: auto;
+            }
+
+            table {
+                font-size: 0.85rem;
+                table-layout: auto;
+            }
+
+            th, td {
+                padding: 0.625rem 0.5rem;
+            }
+
+            th:nth-child(1) { width: auto; }
+            th:nth-child(2) { width: auto; }
+            th:nth-child(3) { width: auto; }
+            th:nth-child(4) { width: auto; }
+            th:nth-child(5) { width: auto; }
+
+            /* Enable horizontal scroll for table on mobile */
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="copyright">© 2026 GoodRelax. MIT License.</div>
+    
+    <div class="container">
+        <h1>クラス図 チートシート</h1>
+        
+        <div class="diagrams-grid">
+            <div class="diagram-container">
+                <pre class="mermaid">
+classDiagram
+    class Vehicle
+    class SUV
+    class Rotatable { &lt;&lt;interface&gt;&gt; }
+    class Motor
+    Vehicle         &lt;|--        SUV :          is a<br/>(汎化)
+    Rotatable       &lt;|..        Motor :        implements<br/>(実現)
+                </pre>
+            </div>
+
+            <div class="diagram-container">
+                <pre class="mermaid">
+classDiagram
+    class Microphone
+    class Speaker
+    class Engine
+    class Transmission
+    Microphone      --          Speaker :      are related<br/>each other<br/>(関連)
+    Engine          &lt;--&gt;        Transmission : are linked<br/>together<br/>(双方向関連)
+                </pre>
+            </div>
+
+            <div class="diagram-container">
+                <pre class="mermaid">
+classDiagram
+    class TempSensor
+    class TempGauge
+    class Battery
+    class Wiper
+    TempSensor      &lt;--         TempGauge :    refers to<br/>(単方向関連)
+    Battery    "1"  &lt;.. "*"     Wiper :        temporally<br/>uses<br/>(依存)
+                </pre>
+            </div>
+
+            <div class="diagram-container">
+                <pre class="mermaid">
+classDiagram
+    class Door
+    class Window
+    class Car
+    class Tire
+    Door       "1"  *-- "1..2"  Window :       composes<br/>(コンポジション)
+    Car        "1"  o-- "4..5"  Tire :         belongs to<br/>(集約)
+                </pre>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>記法</th>
+                        <th>結合度</th>
+                        <th>用語</th>
+                        <th>読み方</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>--｜&gt;</code></td>
+                        <td>高</td>
+                        <td>汎化</td>
+                        <td>is a（〜である）</td>
+                        <td>継承関係。サブクラスがスーパークラスの機能を継承する。逆から見れば汎化関係。</td>
+                    </tr>
+                    <tr>
+                        <td><code>..｜&gt;</code></td>
+                        <td>低</td>
+                        <td>実現</td>
+                        <td>implements（実装する）</td>
+                        <td>インターフェースの実装。言語によってはインターフェースに<code>I</code>を付ける（例：<code>IMotor</code>）。</td>
+                    </tr>
+                    <tr>
+                        <td><code>--</code></td>
+                        <td>中</td>
+                        <td>関連</td>
+                        <td>are related to each other（互いに関連している）</td>
+                        <td>何らかの関係性。方向が曖昧なため非推奨。</td>
+                    </tr>
+                    <tr>
+                        <td><code>&lt;--&gt;</code></td>
+                        <td>高</td>
+                        <td>双方向関連</td>
+                        <td>are linked together（互いに結びついている）</td>
+                        <td>双方向の関係。互いに参照し合う。疎結合にするにはインターフェースを導入する。</td>
+                    </tr>
+                    <tr>
+                        <td><code>--&gt;</code></td>
+                        <td>中</td>
+                        <td>単方向関連</td>
+                        <td>refers to（参照する）</td>
+                        <td>単方向の関係。参照する側 → 参照される側。</td>
+                    </tr>
+                    <tr>
+                        <td><code>..&gt;</code></td>
+                        <td>低</td>
+                        <td>依存</td>
+                        <td>depends on / uses（依存する / 使用する）</td>
+                        <td>一時的な依存関係。使用するが所有はしない。</td>
+                    </tr>
+                    <tr>
+                        <td><code>--*</code></td>
+                        <td>高</td>
+                        <td>コンポジション</td>
+                        <td>composes（構成する）</td>
+                        <td>強い所有関係。全体が破壊されると部分も破壊される。</td>
+                    </tr>
+                    <tr>
+                        <td><code>--o</code></td>
+                        <td>中</td>
+                        <td>集約</td>
+                        <td>belongs to（所属する）</td>
+                        <td>弱い所有関係。全体が破壊されても部分は残る。関係性が曖昧なため非推奨。</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

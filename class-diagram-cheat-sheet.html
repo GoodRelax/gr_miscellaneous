@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Diagram Cheat Sheet</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        
+        // Detect dark mode and set mermaid theme
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: isDark ? 'dark' : 'default'
+        });
+    </script>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #1a1a1a;
+            --border-color: #e0e0e0;
+            --header-bg: #f5f5f5;
+            --code-bg: #f8f8f8;
+            --accent-color: #0066cc;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a1a;
+                --text-color: #e0e0e0;
+                --border-color: #404040;
+                --header-bg: #2a2a2a;
+                --code-bg: #2d2d2d;
+                --accent-color: #4da6ff;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .copyright {
+            position: fixed;
+            top: 0.5rem;
+            right: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-color);
+            opacity: 0.6;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--accent-color);
+        }
+
+        .diagrams-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .diagram-container {
+            background: var(--code-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+            background: var(--bg-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            table {
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        thead {
+            background: var(--header-bg);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: var(--header-bg);
+        }
+
+        code {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+            background: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+
+            .copyright {
+                font-size: 0.65rem;
+                top: 0.25rem;
+                right: 0.25rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .diagrams-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .diagram-container {
+                padding: 1rem;
+                min-height: auto;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            /* Enable horizontal scroll for table on mobile */
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="copyright">© 2026 GoodRelax. MIT License.</div>
+    
+    <div class="container">
+        <h1>Class Diagram Cheat Sheet</h1>
+        
+        <div class="diagrams-grid">
+            <div class="diagram-container">
+                <pre class="mermaid">
+classDiagram
+    class Vehicle
+    class SUV
+    class Rotatable { &lt;&lt;interface&gt;&gt; }
+    class Motor
+    Vehicle         &lt;|--        SUV :          is a<br/>(Generalization)
+    Rotatable       &lt;|..        Motor :        implements<br/>(Realization)
+                </pre>
+            </div>
+
+            <div class="diagram-container">
+                <pre class="mermaid">
+classDiagram
+    class Microphone
+    class Speaker
+    class Engine
+    class Transmission
+    Microphone      --          Speaker :      are related<br/>each other<br/>(Association)
+    Engine          &lt;--&gt;        Transmission : are linked<br/>together<br/>(Bidirectional<br/>Association)
+                </pre>
+            </div>
+
+            <div class="diagram-container">
+                <pre class="mermaid">
+classDiagram
+    class TempSensor
+    class TempGauge
+    class Battery
+    class Wiper
+    TempSensor      &lt;--         TempGauge :    refers to<br/>(Directed<br/>Association)
+    Battery    "1"  &lt;.. "*"     Wiper :        temporally<br/>uses<br/>(Temporal<br/>Dependency)
+                </pre>
+            </div>
+
+            <div class="diagram-container">
+                <pre class="mermaid">
+classDiagram
+    class Door
+    class Window
+    class Car
+    class Tire
+    Door       "1"  *-- "1..2"  Window :       composes<br/>(Composition)
+    Car        "1"  o-- "4..5"  Tire :         belongs to<br/>(Aggregation)
+                </pre>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Notation</th>
+                        <th>Coupling</th>
+                        <th>Term</th>
+                        <th>Reading</th>
+                        <th>Explanation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>--｜&gt;</code></td>
+                        <td>High</td>
+                        <td>Generalization</td>
+                        <td>is a</td>
+                        <td>Inheritance relationship; a subclass inherits functionality from a superclass; conversely, a generalization relationship.</td>
+                    </tr>
+                    <tr>
+                        <td><code>..｜&gt;</code></td>
+                        <td>Low</td>
+                        <td>Realization</td>
+                        <td>implements</td>
+                        <td>Implementation of an interface; some languages prefix interfaces with <code>I</code>, e.g., <code>IMotor</code>.</td>
+                    </tr>
+                    <tr>
+                        <td><code>--</code></td>
+                        <td>Mid</td>
+                        <td>Association</td>
+                        <td>are related to each other</td>
+                        <td>Some kind of relationship; direction is ambiguous, so not recommended.</td>
+                    </tr>
+                    <tr>
+                        <td><code>&lt;--&gt;</code></td>
+                        <td>High</td>
+                        <td>Association</td>
+                        <td>are linked together</td>
+                        <td>Bidirectional relationship; they reference each other; introduce an interface to achieve loose coupling.</td>
+                    </tr>
+                    <tr>
+                        <td><code>--&gt;</code></td>
+                        <td>Mid</td>
+                        <td>Directed Association</td>
+                        <td>refers to</td>
+                        <td>Unidirectional relationship; the referrer → the referent.</td>
+                    </tr>
+                    <tr>
+                        <td><code>..&gt;</code></td>
+                        <td>Low</td>
+                        <td>Dependency</td>
+                        <td>depends on / uses</td>
+                        <td>Temporary dependency; uses but does not own.</td>
+                    </tr>
+                    <tr>
+                        <td><code>--*</code></td>
+                        <td>High</td>
+                        <td>Composition</td>
+                        <td>composes</td>
+                        <td>Strong ownership; when the whole is destroyed, the parts are also destroyed.</td>
+                    </tr>
+                    <tr>
+                        <td><code>--o</code></td>
+                        <td>Mid</td>
+                        <td>Aggregation</td>
+                        <td>belongs to</td>
+                        <td>Weak ownership; parts remain if the whole is destroyed; relationship is ambiguous, so not recommended.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+k
