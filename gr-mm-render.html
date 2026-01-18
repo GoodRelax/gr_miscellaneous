@@ -192,19 +192,28 @@
 					document.body.classList.remove('dark');
 				}
 				
-				// --- NEW: Syntax Highlighting ---
+				// 3. Syntax Highlighting
 				try {
 					hljs.highlightAll();
 				} catch (e) {
 					console.error('Highlight.js Error:', e);
 				}
 				
-				// --- NEW: PlantUML Rendering (Encode -> Image URL) ---
+				// 4. PlantUML Rendering (Encode -> Image URL)
 				const plantumlBlocks = preview.querySelectorAll('code.language-plantuml');
 				plantumlBlocks.forEach(block => {
 					try {
 						// Get the PlantUML source code
-						const code = block.textContent;
+						let code = block.textContent;
+
+						// --- Dark Mode Theme Injection ---
+						// If dark mode is active and the user hasn't specified a theme manually:
+						if (theme === 'dark' && !code.includes('!theme')) {
+							// Inject '!theme cyborg' immediately after the @start... tag.
+							// This regex matches '@startuml', '@startmindmap', etc., and keeps the rest of the line.
+							code = code.replace(/(@start\w+.*)/i, '$1\n!theme cyborg');
+						}
+
 						// Encode it
 						const encoded = plantumlEncoder.encode(code);
 						// Create Image URL (SVG is best for scaling)
@@ -228,9 +237,9 @@
 					}
 				});
 				
-				// 3. Process Mermaid Blocks
+				// 5. Process Mermaid Blocks
 				const mermaidBlocks = preview.querySelectorAll('code.language-mermaid');
-				// ... (既存のMermaid処理はそのまま) ...
+				
 				if (mermaidBlocks.length > 0) {
 					mermaidBlocks.forEach(block => {
 						const container = document.createElement('div');
@@ -260,7 +269,7 @@
 				}
 			}
 			
-			// Event Listeners (そのままでOK)
+			// Event Listeners
 			renderLightBtn.addEventListener('click', () => render('light'));
 			renderDarkBtn.addEventListener('click', () => render('dark'));
 			
