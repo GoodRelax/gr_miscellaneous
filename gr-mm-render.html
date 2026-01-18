@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+	
 	<head>
 		<meta charset="UTF-8">
 		<title>GR Simple Markdown and Mermaid Render</title>
@@ -135,6 +136,9 @@
 		</style>
 		
 		<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
+		<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+		
 	</head>
 	
 	<body>
@@ -163,6 +167,10 @@
 		<script type="module">
 			// Import Mermaid v10+ (ES Module)
 			import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+			// Import Highlight.js (ES Module)
+			import hljs from 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/es/highlight.min.js';
+			// Import PlantUML Encoder (via jsDelivr ESM wrapper)
+			import plantumlEncoder from 'https://cdn.jsdelivr.net/npm/plantuml-encoder@1.4.0/+esm';
 			
 			mermaid.initialize({ startOnLoad: false });
 			
@@ -184,40 +192,75 @@
 					document.body.classList.remove('dark');
 				}
 				
-				// 3. Process Mermaid Blocks
-				const mermaidBlocks = preview.querySelectorAll('code.language-mermaid');
-				if (mermaidBlocks.length === 0) return;
+				// --- NEW: Syntax Highlighting ---
+				try {
+					hljs.highlightAll();
+				} catch (e) {
+					console.error('Highlight.js Error:', e);
+				}
 				
-				// Convert <code> to <div> for Mermaid processing
-				mermaidBlocks.forEach(block => {
-					const container = document.createElement('div');
-					container.className = 'mermaid';
-					container.textContent = block.textContent;
-					
-					const pre = block.parentElement;
-					if (pre && pre.tagName === 'PRE') {
-						pre.replaceWith(container);
-					} else {
-						block.replaceWith(container);
+				// --- NEW: PlantUML Rendering (Encode -> Image URL) ---
+				const plantumlBlocks = preview.querySelectorAll('code.language-plantuml');
+				plantumlBlocks.forEach(block => {
+					try {
+						// Get the PlantUML source code
+						const code = block.textContent;
+						// Encode it
+						const encoded = plantumlEncoder.encode(code);
+						// Create Image URL (SVG is best for scaling)
+						const url = `https://www.plantuml.com/plantuml/svg/${encoded}`;
+						
+						// Create replacement Image element
+						const img = document.createElement('img');
+						img.src = url;
+						img.alt = "PlantUML Diagram";
+						img.style.maxWidth = "100%"; // Basic responsive style
+						
+						// Replace the <pre> container if it exists, otherwise just the <code>
+						const pre = block.parentElement;
+						if (pre && pre.tagName === 'PRE') {
+							pre.replaceWith(img);
+						} else {
+							block.replaceWith(img);
+						}
+					} catch (e) {
+						console.error('PlantUML Error:', e);
 					}
 				});
 				
-				// 4. Render Mermaid
-				mermaid.initialize({
-					startOnLoad: false,
-					theme: theme === 'dark' ? 'dark' : 'default'
-				});
-				
-				try {
-					await mermaid.run({
-						nodes: preview.querySelectorAll('.mermaid')
+				// 3. Process Mermaid Blocks
+				const mermaidBlocks = preview.querySelectorAll('code.language-mermaid');
+				// ... (既存のMermaid処理はそのまま) ...
+				if (mermaidBlocks.length > 0) {
+					mermaidBlocks.forEach(block => {
+						const container = document.createElement('div');
+						container.className = 'mermaid';
+						container.textContent = block.textContent;
+						
+						const pre = block.parentElement;
+						if (pre && pre.tagName === 'PRE') {
+							pre.replaceWith(container);
+						} else {
+							block.replaceWith(container);
+						}
 					});
-				} catch (e) {
-					console.error('Mermaid Error:', e);
+					
+					mermaid.initialize({
+						startOnLoad: false,
+						theme: theme === 'dark' ? 'dark' : 'default'
+					});
+					
+					try {
+						await mermaid.run({
+							nodes: preview.querySelectorAll('.mermaid')
+						});
+					} catch (e) {
+						console.error('Mermaid Error:', e);
+					}
 				}
 			}
 			
-			// Event Listeners
+			// Event Listeners (そのままでOK)
 			renderLightBtn.addEventListener('click', () => render('light'));
 			renderDarkBtn.addEventListener('click', () => render('dark'));
 			
