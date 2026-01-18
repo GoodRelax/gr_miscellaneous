@@ -777,7 +777,7 @@ transmission.shift()</code></pre>
 classDiagram
 class TempSensor
 class TempGauge
-TempGauge --> TempSensor : refers to
+TempSensor <-- TempGauge : refers to
             </pre>
         </div>
 
@@ -886,7 +886,7 @@ gauge.display()</code></pre>
 classDiagram
 class Battery
 class Wiper
-Wiper "*" ..> "1" Battery : uses
+Battery "1" <.. "*" Wiper : uses
             </pre>
         </div>
 
