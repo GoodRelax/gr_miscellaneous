@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>GR Simple Markdown and Mermaid Render</title>
+		<style>
+			body {
+				margin: 0;
+				font-family: sans-serif;
+				display: flex;
+				flex-direction: column;
+				height: 100vh;
+			}
+			
+			/* --- Top Bar Layout --- */
+			#topbar {
+				display: flex;
+				align-items: center;
+				padding: 8px 12px;
+				background: #f0f0f0;
+				gap: 16px;
+				
+				border-bottom: 1px solid #ccc;
+			}
+			
+			/* Title & Copyright Group */
+			#header-group {
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				flex-shrink: 0;
+				
+			}
+			
+			#title {
+				font-weight: bold;
+				font-size: 16px;
+				line-height: 1.2;
+				white-space: nowrap;
+			}
+			
+			#copyright {
+				font-size: 10px;
+				line-height: 1.2;
+				margin-top: 2px;
+			}
+			
+			#copyright a {
+				color: blue;
+				text-decoration: underline;
+			}
+			
+			/* Controls (Buttons) */
+			#controls {
+				display: flex;
+				gap: 8px;
+				flex-shrink: 0;
+				
+			}
+			
+			/* Editor (Input Area) */
+			#editor {
+				flex: 1;
+				
+				font-family: monospace;
+				font-size: 14px;
+				padding: 4px 8px;
+				border: 1px solid #ccc;
+				
+				
+				height: 24px;
+				min-height: 24px;
+				resize: vertical;
+				
+				white-space: pre;
+				overflow-y: auto;
+			}
+			
+			/* --- Preview Area --- */
+			#preview {
+				flex: 1;
+				overflow: auto;
+				padding: 20px;
+			}
+			
+			/* Markdown Elements */
+			pre {
+				background: #f4f4f4;
+				padding: 12px;
+				border-radius: 4px;
+				overflow-x: auto;
+			}
+			
+			blockquote {
+				border-left: 4px solid #ccc;
+				margin: 0;
+				padding-left: 16px;
+				color: #666;
+			}
+			
+			/* Mermaid Container */
+			.mermaid {
+				display: flex;
+				justify-content: center;
+				margin: 16px 0;
+			}
+			
+			/* --- Dark Theme --- */
+			body.dark {
+				background: #222;
+				color: #ddd;
+			}
+			
+			.dark #topbar {
+				background: #333;
+				border-bottom: 1px solid #444;
+			}
+			
+			.dark #editor {
+				background: #444;
+				color: #fff;
+				border-color: #666;
+			}
+			
+			.dark pre {
+				background: #333;
+				border: 1px solid #555;
+			}
+			
+			/* Dark mode link adjustment for visibility */
+			.dark #copyright a {
+				color: #66b3ff;
+				
+			}
+		</style>
+		
+		<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+	</head>
+	
+	<body>
+		<div id="topbar">
+			
+			<div id="header-group">
+				<div id="title">GR Simple Render</div>
+				<div id="copyright">
+					&copy; 2026 GoodRelax. MIT License.
+					<br>
+					<a href="https://github.com/GoodRelax" target="_blank">https://github.com/GoodRelax</a>
+				</div>
+			</div>
+			
+			<div id="controls">
+				<button id="renderLight">Render Light</button>
+				<button id="renderDark">Render Dark</button>
+				<button id="clearBtn">Clear</button>
+			</div>
+			
+			<textarea id="editor" placeholder="Paste Markdown..."></textarea>
+		</div>
+		
+		<div id="preview"></div>
+		
+		<script type="module">
+			// Import Mermaid v10+ (ES Module)
+			import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+			
+			mermaid.initialize({ startOnLoad: false });
+			
+			const editor = document.getElementById('editor');
+			const preview = document.getElementById('preview');
+			const renderLightBtn = document.getElementById('renderLight');
+			const renderDarkBtn = document.getElementById('renderDark');
+			const clearBtn = document.getElementById('clearBtn');
+			
+			async function render(theme) {
+				// 1. Markdown Parsing
+				const html = marked.parse(editor.value);
+				preview.innerHTML = html;
+				
+				// 2. Apply Theme Class
+				if (theme === 'dark') {
+					document.body.classList.add('dark');
+				} else {
+					document.body.classList.remove('dark');
+				}
+				
+				// 3. Process Mermaid Blocks
+				const mermaidBlocks = preview.querySelectorAll('code.language-mermaid');
+				if (mermaidBlocks.length === 0) return;
+				
+				// Convert <code> to <div> for Mermaid processing
+				mermaidBlocks.forEach(block => {
+					const container = document.createElement('div');
+					container.className = 'mermaid';
+					container.textContent = block.textContent;
+					
+					const pre = block.parentElement;
+					if (pre && pre.tagName === 'PRE') {
+						pre.replaceWith(container);
+					} else {
+						block.replaceWith(container);
+					}
+				});
+				
+				// 4. Render Mermaid
+				mermaid.initialize({
+					startOnLoad: false,
+					theme: theme === 'dark' ? 'dark' : 'default'
+				});
+				
+				try {
+					await mermaid.run({
+						nodes: preview.querySelectorAll('.mermaid')
+					});
+				} catch (e) {
+					console.error('Mermaid Error:', e);
+				}
+			}
+			
+			// Event Listeners
+			renderLightBtn.addEventListener('click', () => render('light'));
+			renderDarkBtn.addEventListener('click', () => render('dark'));
+			
+			clearBtn.addEventListener('click', () => {
+				editor.value = '';
+				preview.innerHTML = '';
+				document.body.classList.remove('dark');
+			});
+		</script>
+	</body>
+	
+</html>
