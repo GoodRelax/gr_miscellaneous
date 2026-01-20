@@ -181,6 +181,34 @@
 			const clearBtn = document.getElementById('clearBtn');
 			
 			async function render(theme) {
+				// Security & Privacy Protection Check
+				// Detect if PlantUML is used, which requires external server communication.
+				const content = editor.value;
+				const hasPlantUML = /```plantuml/i.test(content) || /@startuml/i.test(content) || /code\.language-plantuml/.test(marked.parse(content));
+				
+				if (hasPlantUML) {
+					const warningMsg =
+						
+						`Security & Confidentiality Warning
+
+Your data will be sent to an external PlantUML server to create diagrams.
+
+Your Markdown -- [OK]→ 🌐
+
+Do you want to continue?`;
+					
+					const userAgreed = window.confirm(warningMsg);
+					
+					if (!userAgreed) {
+						// User denied external transmission. 
+						// Strict security requirement: Delete all data immediately.
+						editor.value = '';
+						preview.innerHTML = '';
+						document.body.classList.remove('dark');
+						return; // Stop execution
+					}
+				}
+				
 				// 1. Markdown Parsing
 				const html = marked.parse(editor.value);
 				preview.innerHTML = html;
@@ -200,32 +228,30 @@
 				}
 				
 				// 4. PlantUML Rendering (Encode -> Image URL)
+				// Note: This step sends data to plantuml.com
 				const plantumlBlocks = preview.querySelectorAll('code.language-plantuml');
 				plantumlBlocks.forEach(block => {
 					try {
 						// Get the PlantUML source code
 						let code = block.textContent;
-
+						
 						// --- Dark Mode Theme Injection ---
-						// If dark mode is active and the user hasn't specified a theme manually:
 						if (theme === 'dark' && !code.includes('!theme')) {
-							// Inject '!theme cyborg' immediately after the @start... tag.
-							// This regex matches '@startuml', '@startmindmap', etc., and keeps the rest of the line.
 							code = code.replace(/(@start\w+.*)/i, '$1\n!theme cyborg');
 						}
-
+						
 						// Encode it
 						const encoded = plantumlEncoder.encode(code);
-						// Create Image URL (SVG is best for scaling)
+						// Create Image URL
 						const url = `https://www.plantuml.com/plantuml/svg/${encoded}`;
 						
 						// Create replacement Image element
 						const img = document.createElement('img');
 						img.src = url;
 						img.alt = "PlantUML Diagram";
-						img.style.maxWidth = "100%"; // Basic responsive style
+						img.style.maxWidth = "100%";
 						
-						// Replace the <pre> container if it exists, otherwise just the <code>
+						// Replace the container
 						const pre = block.parentElement;
 						if (pre && pre.tagName === 'PRE') {
 							pre.replaceWith(img);
@@ -268,6 +294,7 @@
 					}
 				}
 			}
+			
 			
 			// Event Listeners
 			renderLightBtn.addEventListener('click', () => render('light'));
