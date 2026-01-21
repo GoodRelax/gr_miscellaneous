@@ -156,8 +156,10 @@
 			<div id="controls">
 				<button id="renderLight">Render Light</button>
 				<button id="renderDark">Render Dark</button>
+				<button id="newTabBtn">New Tab</button>
 				<button id="clearBtn">Clear</button>
 			</div>
+			
 			
 			<textarea id="editor" placeholder="Paste Markdown..."></textarea>
 		</div>
@@ -173,11 +175,12 @@
 			import plantumlEncoder from 'https://cdn.jsdelivr.net/npm/plantuml-encoder@1.4.0/+esm';
 			
 			mermaid.initialize({ startOnLoad: false });
-			
+				
 			const editor = document.getElementById('editor');
 			const preview = document.getElementById('preview');
 			const renderLightBtn = document.getElementById('renderLight');
 			const renderDarkBtn = document.getElementById('renderDark');
+			const newTabBtn = document.getElementById('newTabBtn');
 			const clearBtn = document.getElementById('clearBtn');
 			
 			async function render(theme) {
@@ -295,10 +298,14 @@ Do you want to continue?`;
 				}
 			}
 			
-			
 			// Event Listeners
 			renderLightBtn.addEventListener('click', () => render('light'));
 			renderDarkBtn.addEventListener('click', () => render('dark'));
+			
+			// Open a fresh instance of the application in a new tab
+			newTabBtn.addEventListener('click', () => {
+				window.open(window.location.href, '_blank');
+			});
 			
 			clearBtn.addEventListener('click', () => {
 				editor.value = '';
