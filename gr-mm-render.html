@@ -13,7 +13,6 @@
 				height: 100vh;
 			}
 			
-			/* --- Top Bar Layout --- */
 			#topbar {
 				display: flex;
 				align-items: center;
@@ -23,7 +22,6 @@
 				border-bottom: 1px solid #ccc;
 			}
 			
-			/* Title & Copyright Group */
 			#header-group {
 				display: flex;
 				flex-direction: column;
@@ -49,14 +47,12 @@
 				text-decoration: underline;
 			}
 			
-			/* Controls (Buttons) */
 			#controls {
 				display: flex;
 				gap: 8px;
 				flex-shrink: 0;
 			}
 			
-			/* Editor (Input Area) */
 			#editor {
 				flex: 1;
 				font-family: monospace;
@@ -70,7 +66,6 @@
 				overflow-y: auto;
 			}
 			
-			/* Help Button */
 			#helpBtn {
 				flex: 0 0 24px;
 				height: 34px;
@@ -85,14 +80,12 @@
 				user-select: none;
 			}
 			
-			/* --- Preview Area --- */
 			#preview {
 				flex: 1;
 				overflow: auto;
 				padding: 20px;
 			}
 			
-			/* Markdown Elements */
 			pre {
 				background: #f4f4f4;
 				padding: 12px;
@@ -107,14 +100,12 @@
 				color: #666;
 			}
 			
-			/* Mermaid Container */
 			.mermaid {
 				display: flex;
 				justify-content: center;
 				margin: 16px 0;
 			}
 			
-			/* PlantUML Error Display */
 			.plantuml-error {
 				border: 2px dashed #ff6b6b;
 				padding: 12px;
@@ -126,7 +117,6 @@
 				font-size: 13px;
 			}
 			
-			/* --- Modal Styles --- */
 			.modal {
 				display: none;
 				position: fixed;
@@ -182,14 +172,12 @@
 				padding-left: 20px;
 			}
 			
-			/* Prompt Modal Textarea */
 			#promptText {
 				background: #f4f4f4;
 				border: 1px solid #ccc;
 				color: #333;
 			}
 			
-			/* --- Dark Theme --- */
 			body.dark {
 				background: #222;
 				color: #ddd;
@@ -276,7 +264,6 @@
 		
 		<div id="preview"></div>
 		
-		<!-- Help Modal -->
 		<div id="helpModal" class="modal">
 			<div class="modal-content">
 				<span class="close-btn">&times;</span>
@@ -310,13 +297,12 @@
 			</div>
 		</div>
 		
-		<!-- Prompt Modal -->
 		<div id="promptModal" class="modal">
 			<div class="modal-content">
 				<span class="close-btn prompt-close">&times;</span>
 				<div class="modal-section">
 					<h3>Prompt for AI Markdown Generation</h3>
-					<p>The prompt below improves the quality of the AI’s Markdown output by reducing errors. Simply copy and paste it to use</p>
+					<p>The prompt below improves the quality of the AI's Markdown output by reducing errors. Simply copy and paste it to use</p>
 					
 					<textarea id="promptText" readonly style="width: 100%; height: 200px; margin-bottom: 10px; resize: none; font-family: monospace; font-size: 12px; padding: 8px; box-sizing: border-box;"></textarea>
 					<button id="copyPromptBtn" style="width: 100%; padding: 10px; cursor: pointer; font-weight: bold;">Copy to Clipboard</button>
@@ -326,27 +312,147 @@
 		
 		
 		<script type="module">
-			// ========================================
-			// External Imports
-			// ========================================
 			import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
 			import hljs from 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/es/highlight.min.js';
 			import plantumlEncoder from 'https://cdn.jsdelivr.net/npm/plantuml-encoder@1.4.0/+esm';
 			
 			
 			// ========================================
+			// Configuration
+			// ========================================
+			const CONFIG = {
+				rendering: {
+					stabilityTimeout: 1000,
+					stabilityDebounce: 50
+				},
+				plantuml: {
+					imageLoadTimeout: 5000,
+					serverUrl: 'https://www.plantuml.com/plantuml/svg/'
+				},
+				ui: {
+					longPressDuration: 800,
+					copyFeedbackDuration: 1000
+				}
+			};
+			
+			
+			// ========================================
+			// Type Definitions
+			// ========================================
+			
+			/**
+			 * @typedef {Object} UIElements
+			 * @property {HTMLTextAreaElement} editor
+			 * @property {HTMLElement} preview
+			 * @property {HTMLButtonElement} renderLightBtn
+			 * @property {HTMLButtonElement} renderDarkBtn
+			 * @property {HTMLButtonElement} newTabBtn
+			 * @property {HTMLButtonElement} clearBtn
+			 * @property {HTMLButtonElement} helpBtn
+			 * @property {HTMLElement} helpModal
+			 * @property {HTMLElement} promptModal
+			 * @property {HTMLTextAreaElement} promptText
+			 * @property {HTMLButtonElement} copyPromptBtn
+			 */
+			
+			
+			// ========================================
+			// Utility Functions
+			// ========================================
+			
+			/**
+			 * Check if text contains PlantUML diagrams
+			 * @param {string} text
+			 * @returns {boolean}
+			 */
+			function hasPlantUML(text) {
+				return /```plantuml/i.test(text) || /@startuml/i.test(text);
+			}
+			
+			/**
+			 * Check PlantUML consent and clear data if denied
+			 * @param {string} content
+			 * @param {UIElements} elements
+			 * @returns {boolean}
+			 */
+			function checkPlantUMLConsent(content, elements) {
+				if (!hasPlantUML(content)) return true;
+				
+				const agreed = window.confirm(
+					`Security & Confidentiality Warning\n\n` +
+					`Your data will be sent to an external PlantUML server to create diagrams.\n\n` +
+					`Your Markdown -- [OK]→ 🌐\n\n` +
+					`Do you want to continue?`
+				);
+				
+				if (!agreed) {
+					elements.editor.value = '';
+					elements.preview.innerHTML = '';
+					document.body.classList.remove('dark');
+				}
+				
+				return agreed;
+			}
+			
+			/**
+			 * Wait for DOM stability using ResizeObserver
+			 * @param {HTMLElement} element
+			 * @param {number} timeout
+			 * @returns {Promise<boolean>}
+			 */
+			async function waitForDOMStability(element, timeout = CONFIG.rendering.stabilityTimeout) {
+				return new Promise((resolve) => {
+					let resizeTimer;
+					let timeoutTimer;
+					
+					const resizeObserver = new ResizeObserver(() => {
+						clearTimeout(resizeTimer);
+						resizeTimer = setTimeout(() => {
+							cleanup();
+							resolve(true);
+						}, CONFIG.rendering.stabilityDebounce);
+					});
+					
+					const cleanup = () => {
+						resizeObserver.disconnect();
+						clearTimeout(resizeTimer);
+						clearTimeout(timeoutTimer);
+					};
+					
+					resizeObserver.observe(element);
+					
+					timeoutTimer = setTimeout(() => {
+						cleanup();
+						console.warn('DOM stability timeout after', timeout, 'ms (continuing anyway)');
+						resolve(false);
+					}, timeout);
+				});
+			}
+			
+			
+			// ========================================
 			// Class: ApplicationState
 			// ========================================
+			
+			/**
+			 * Application state manager
+			 */
 			class ApplicationState {
 				constructor() {
 					this.currentTheme = 'light';
 					this.markdownText = '';
 				}
 				
+				/**
+				 * @param {string} theme
+				 */
 				setTheme(theme) {
 					this.currentTheme = theme;
 				}
 				
+				/**
+				 * @param {string} text
+				 */
 				setMarkdownText(text) {
 					this.markdownText = text;
 				}
@@ -356,15 +462,28 @@
 			// ========================================
 			// Class: ScrollManager
 			// ========================================
+			
+			/**
+			 * Manages scroll position preservation
+			 */
 			class ScrollManager {
+				/**
+				 * @param {HTMLElement} container
+				 */
 				constructor(container) {
 					this.container = container;
 				}
 				
+				/**
+				 * @returns {number}
+				 */
 				save() {
 					return this.container.scrollTop;
 				}
 				
+				/**
+				 * @param {number} scrollTop
+				 */
 				restore(scrollTop) {
 					this.container.scrollTop = scrollTop;
 				}
@@ -372,57 +491,18 @@
 			
 			
 			// ========================================
-			// Class: DOMStabilityWatcher
-			// ========================================
-			class DOMStabilityWatcher {
-				/**
-				 * Wait for DOM to become stable using ResizeObserver
-				 * Event-driven: completes when element has no resize for 50ms
-				 * Timeout: continues after specified duration if still unstable
-				 * 
-				 * @param {HTMLElement} element - Element to watch
-				 * @param {number} timeout - Maximum wait time in milliseconds (default: 1000)
-				 * @returns {Promise<boolean>} - true if stable, false if timeout
-				 */
-				static async waitForStability(element, timeout = 1000) {
-					return new Promise((resolve) => {
-						let resizeTimer;
-						let timeoutTimer;
-						
-						const resizeObserver = new ResizeObserver(() => {
-							// Element resized - reset stability timer
-							clearTimeout(resizeTimer);
-							resizeTimer = setTimeout(() => {
-								// No resize for 50ms - considered stable
-								cleanup();
-								resolve(true);
-							}, 50);
-						});
-						
-						const cleanup = () => {
-							resizeObserver.disconnect();
-							clearTimeout(resizeTimer);
-							clearTimeout(timeoutTimer);
-						};
-						
-						// Start observing
-						resizeObserver.observe(element);
-						
-						// Timeout fallback
-						timeoutTimer = setTimeout(() => {
-							cleanup();
-							console.warn('DOM stability timeout after', timeout, 'ms (continuing anyway)');
-							resolve(false);
-						}, timeout);
-					});
-				}
-			}
-			
-			
-			// ========================================
 			// Class: MarkdownRenderer
 			// ========================================
+			
+			/**
+			 * Renders Markdown with syntax highlighting
+			 */
 			class MarkdownRenderer {
+				/**
+				 * @param {HTMLElement} preview
+				 * @param {object} marked
+				 * @param {object} hljs
+				 */
 				constructor(preview, marked, hljs) {
 					this.preview = preview;
 					this.marked = marked;
@@ -430,7 +510,6 @@
 				}
 				
 				/**
-				 * Render Markdown with syntax highlighting
 				 * @param {string} markdownText
 				 * @returns {Promise<void>}
 				 */
@@ -439,7 +518,6 @@
 						const html = this.marked.parse(markdownText);
 						this.preview.innerHTML = html;
 						
-						// Apply syntax highlighting (synchronous)
 						try {
 							this.hljs.highlightAll();
 						} catch (hljsError) {
@@ -457,10 +535,13 @@
 			// ========================================
 			// Class: DiagramRenderer (Interface)
 			// ========================================
+			
+			/**
+			 * Base interface for diagram renderers
+			 */
 			class DiagramRenderer {
 				/**
-				 * Render diagram with theme
-				 * @param {string} theme - 'light' or 'dark'
+				 * @param {string} theme
 				 * @returns {Promise<void>}
 				 */
 				async render(theme) {
@@ -472,7 +553,15 @@
 			// ========================================
 			// Class: MermaidRenderer
 			// ========================================
+			
+			/**
+			 * Renders Mermaid diagrams
+			 */
 			class MermaidRenderer extends DiagramRenderer {
+				/**
+				 * @param {HTMLElement} preview
+				 * @param {object} mermaid
+				 */
 				constructor(preview, mermaid) {
 					super();
 					this.preview = preview;
@@ -480,7 +569,6 @@
 				}
 				
 				/**
-				 * Render all Mermaid diagrams
 				 * @param {string} theme
 				 * @returns {Promise<void>}
 				 */
@@ -492,18 +580,8 @@
 							return;
 						}
 						
-						// Convert code blocks to mermaid containers
 						mermaidBlocks.forEach(block => {
-							const container = document.createElement('div');
-							container.className = 'mermaid';
-							container.textContent = block.textContent;
-							
-							const pre = block.parentElement;
-							if (pre && pre.tagName === 'PRE') {
-								pre.replaceWith(container);
-							} else {
-								block.replaceWith(container);
-							}
+							const container = this.convertCodeBlockToContainer(block);
 						});
 						
 						this.mermaid.initialize({
@@ -519,13 +597,40 @@
 						console.error('Mermaid rendering error:', error);
 					}
 				}
+				
+				/**
+				 * @param {HTMLElement} block
+				 * @returns {HTMLElement}
+				 */
+				convertCodeBlockToContainer(block) {
+					const container = document.createElement('div');
+					container.className = 'mermaid';
+					container.textContent = block.textContent;
+					
+					const pre = block.parentElement;
+					if (pre && pre.tagName === 'PRE') {
+						pre.replaceWith(container);
+					} else {
+						block.replaceWith(container);
+					}
+					
+					return container;
+				}
 			}
 			
 			
 			// ========================================
 			// Class: PlantUMLRenderer
 			// ========================================
+			
+			/**
+			 * Renders PlantUML diagrams via external server
+			 */
 			class PlantUMLRenderer extends DiagramRenderer {
+				/**
+				 * @param {HTMLElement} preview
+				 * @param {object} plantumlEncoder
+				 */
 				constructor(preview, plantumlEncoder) {
 					super();
 					this.preview = preview;
@@ -533,7 +638,6 @@
 				}
 				
 				/**
-				 * Render all PlantUML diagrams
 				 * @param {string} theme
 				 * @returns {Promise<void>}
 				 */
@@ -551,21 +655,19 @@
 							try {
 								let code = block.textContent;
 								
-								// Inject dark theme
 								if (theme === 'dark' && !code.includes('!theme')) {
 									code = code.replace(/(@start\w+.*)/i, '$1\n!theme cyborg');
 								}
 								
 								const encoded = this.encoder.encode(code);
-								const url = `https://www.plantuml.com/plantuml/svg/${encoded}`;
+								const url = `${CONFIG.plantuml.serverUrl}${encoded}`;
 								
 								const img = document.createElement('img');
 								img.src = url;
 								img.alt = "PlantUML Diagram";
 								img.style.maxWidth = "100%";
 								
-								// Wait for image load (5s timeout)
-								const loadPromise = this.waitForImageLoad(img, 5000);
+								const loadPromise = this.waitForImageLoad(img, CONFIG.plantuml.imageLoadTimeout);
 								imageLoadPromises.push(loadPromise);
 								
 								const pre = block.parentElement;
@@ -587,7 +689,6 @@
 							}
 						});
 						
-						// Wait for all images
 						await Promise.allSettled(imageLoadPromises);
 						
 					} catch (error) {
@@ -596,15 +697,14 @@
 				}
 				
 				/**
-				 * Wait for image load with timeout
 				 * @param {HTMLImageElement} img
 				 * @param {number} timeout
 				 * @returns {Promise<boolean>}
 				 */
-				async waitForImageLoad(img, timeout = 5000) {
+				async waitForImageLoad(img, timeout) {
 					return new Promise((resolve) => {
 						const timer = setTimeout(() => {
-							const errorDiv = this.createErrorElement('PlantUML timeout (5s)');
+							const errorDiv = this.createErrorElement(`PlantUML timeout (${timeout/1000}s)`);
 							img.replaceWith(errorDiv);
 							resolve(false);
 						}, timeout);
@@ -624,7 +724,6 @@
 				}
 				
 				/**
-				 * Create error display element
 				 * @param {string} message
 				 * @returns {HTMLElement}
 				 */
@@ -640,7 +739,18 @@
 			// ========================================
 			// Class: RendererOrchestrator
 			// ========================================
+			
+			/**
+			 * Orchestrates rendering workflow
+			 */
 			class RendererOrchestrator {
+				/**
+				 * @param {ApplicationState} state
+				 * @param {MarkdownRenderer} markdownRenderer
+				 * @param {DiagramRenderer[]} diagramRenderers
+				 * @param {ScrollManager} scrollManager
+				 * @param {HTMLElement} preview
+				 */
 				constructor(state, markdownRenderer, diagramRenderers, scrollManager, preview) {
 					this.state = state;
 					this.markdownRenderer = markdownRenderer;
@@ -650,84 +760,176 @@
 				}
 				
 				/**
-				 * Execute all rendering steps with parallel diagram rendering
 				 * @returns {Promise<void>}
 				 */
 				async renderAll() {
 					try {
 						const scrollTop = this.scrollManager.save();
 						
-						// Markdown includes syntax highlighting
 						await this.markdownRenderer.render(this.state.markdownText);
 						
-						// Diagrams execute in parallel
 						const diagramResults = await Promise.allSettled(
 							this.diagramRenderers.map(renderer => renderer.render(this.state.currentTheme))
 						);
 						
-						// Log failures but continue
 						diagramResults.forEach((result, index) => {
 							if (result.status === 'rejected') {
 								console.error(`Diagram renderer ${index} failed:`, result.reason);
 							}
 						});
 						
-						// Wait for DOM stability (ResizeObserver + timeout)
-						await DOMStabilityWatcher.waitForStability(this.preview, 1000);
+						await waitForDOMStability(this.preview);
 						
-						// Restore scroll position
 						this.scrollManager.restore(scrollTop);
 						
 					} catch (error) {
 						console.error('Rendering orchestration error:', error);
-						// Best-effort: attempt scroll restore even on catastrophic error
 					}
 				}
 			}
 			
 			
 			// ========================================
-			// Initialization and Event Handlers
+			// Class: ModalController
 			// ========================================
 			
-			// DOM Elements
-			const editor = document.getElementById('editor');
-			const preview = document.getElementById('preview');
-			const renderLightBtn = document.getElementById('renderLight');
-			const renderDarkBtn = document.getElementById('renderDark');
-			const newTabBtn = document.getElementById('newTabBtn');
-			const clearBtn = document.getElementById('clearBtn');
-			
-			// Modal Elements
-			const helpModal = document.getElementById('helpModal');
-			const helpBtn = document.getElementById('helpBtn');
-			const closeSpan = document.getElementsByClassName('close-btn')[0];
-			const promptModal = document.getElementById('promptModal');
-			const promptClose = document.querySelector('.prompt-close');
-			const promptText = document.getElementById('promptText');
-			const copyPromptBtn = document.getElementById('copyPromptBtn');
-			
-			// Helper function
-			function hasPlantUML(text) {
-				return /```plantuml/i.test(text) || /@startuml/i.test(text);
+			/**
+			 * Manages modal dialogs
+			 */
+			class ModalController {
+				/**
+				 * @param {HTMLElement} modal
+				 * @param {HTMLElement[]} closeTriggers
+				 */
+				static setupModal(modal, closeTriggers) {
+					closeTriggers.forEach(trigger => {
+						trigger.onclick = () => {
+							modal.style.display = "none";
+						};
+					});
+					
+					window.addEventListener('click', (event) => {
+						if (event.target === modal) {
+							modal.style.display = "none";
+						}
+					});
+				}
+				
+				/**
+				 * @param {HTMLElement} modal
+				 */
+				static show(modal) {
+					modal.style.display = "block";
+				}
+				
+				/**
+				 * @param {HTMLElement} modal
+				 */
+				static hide(modal) {
+					modal.style.display = "none";
+				}
 			}
 			
-			// Initialize application components
-			const state = new ApplicationState();
-			const scrollManager = new ScrollManager(preview);
-			const markdownRenderer = new MarkdownRenderer(preview, marked, hljs);
-			const mermaidRenderer = new MermaidRenderer(preview, mermaid);
-			const plantumlRenderer = new PlantUMLRenderer(preview, plantumlEncoder);
-			const orchestrator = new RendererOrchestrator(
-				state,
-				markdownRenderer,
-				[mermaidRenderer, plantumlRenderer],
-				scrollManager,
-				preview
-			);
 			
-			// Prompt text content
-			const COPY_PAYLOAD = `
+			// ========================================
+			// Class: UIController
+			// ========================================
+			
+			/**
+			 * Manages UI interactions
+			 */
+			class UIController {
+				/**
+				 * @param {RendererOrchestrator} orchestrator
+				 * @param {ApplicationState} state
+				 * @param {UIElements} elements
+				 */
+				constructor(orchestrator, state, elements) {
+					this.orchestrator = orchestrator;
+					this.state = state;
+					this.elements = elements;
+					this.longPressTimer = null;
+					this.isLongPress = false;
+					
+					this.setupEventListeners();
+					this.setupModals();
+					this.setupPromptText();
+				}
+				
+				setupEventListeners() {
+					this.setupRenderButtons();
+					this.setupUtilityButtons();
+					this.setupHelpButton();
+					this.setupPromptButton();
+				}
+				
+				setupRenderButtons() {
+					this.elements.renderLightBtn.addEventListener('click', async () => {
+						await this.handleRender('light');
+					});
+					
+					this.elements.renderDarkBtn.addEventListener('click', async () => {
+						await this.handleRender('dark');
+					});
+				}
+				
+				setupUtilityButtons() {
+					this.elements.newTabBtn.addEventListener('click', () => {
+						window.open(window.location.href, '_blank');
+					});
+					
+					this.elements.clearBtn.addEventListener('click', () => {
+						this.elements.editor.value = '';
+						this.elements.preview.innerHTML = '';
+						document.body.classList.remove('dark');
+					});
+				}
+				
+				setupHelpButton() {
+					this.elements.helpBtn.addEventListener('mousedown', (e) => this.startPress(e));
+					this.elements.helpBtn.addEventListener('mouseup', (e) => this.cancelPress(e));
+					this.elements.helpBtn.addEventListener('mouseleave', (e) => this.cancelPress(e));
+					
+					this.elements.helpBtn.addEventListener('touchstart', (e) => this.startPress(e));
+					this.elements.helpBtn.addEventListener('touchend', (e) => {
+						this.cancelPress(e);
+						if (!this.isLongPress) {
+							e.preventDefault();
+							this.handleHelpClick(e);
+						}
+					});
+					
+					this.elements.helpBtn.addEventListener('click', (e) => this.handleHelpClick(e));
+				}
+				
+				setupPromptButton() {
+					this.elements.copyPromptBtn.addEventListener('click', () => {
+						this.elements.promptText.select();
+						this.elements.promptText.setSelectionRange(0, 99999);
+						
+						try {
+							const successful = document.execCommand('copy');
+							if (successful) {
+								this.showCopySuccess();
+							} else {
+								alert("Copy failed.");
+							}
+						} catch (err) {
+							alert("Browser denied copy.");
+						}
+					});
+				}
+				
+				setupModals() {
+					const helpCloseBtn = this.elements.helpModal.querySelector('.close-btn');
+					const promptCloseBtn = this.elements.promptModal.querySelector('.prompt-close');
+					
+					ModalController.setupModal(this.elements.helpModal, [helpCloseBtn]);
+					ModalController.setupModal(this.elements.promptModal, [promptCloseBtn]);
+				}
+				
+				setupPromptText() {
+					const COPY_PAYLOAD = `
 ## Output Format
 - Output the entire content as a single Markdown document so it can be copied at once.
 - Enclose the entire Markdown with six backticks \` \`\`\`\`\`\` \` at the beginning and end. Specify its language as markdown.
@@ -748,195 +950,114 @@
      (example: \`A --> B : Label\`)
 - This method is called **MCBSMD** (Multiple Code Block in Single MarkDown).
 `;
-			
-			if (promptText) promptText.value = COPY_PAYLOAD;
-			
-			
-			// ========================================
-			// Event Handlers: Render Buttons
-			// ========================================
-			
-			renderLightBtn.addEventListener('click', async () => {
-				const content = editor.value;
+					this.elements.promptText.value = COPY_PAYLOAD;
+				}
 				
-				// PlantUML security check (UI layer)
-				if (hasPlantUML(content)) {
-					const agreed = window.confirm(
-						`Security & Confidentiality Warning\n\n` +
-						`Your data will be sent to an external PlantUML server to create diagrams.\n\n` +
-						`Your Markdown -- [OK]→ 🌐\n\n` +
-						`Do you want to continue?`
-					);
+				/**
+				 * @param {string} theme
+				 * @returns {Promise<void>}
+				 */
+				async handleRender(theme) {
+					const content = this.elements.editor.value;
 					
-					if (!agreed) {
-						editor.value = '';
-						preview.innerHTML = '';
-						document.body.classList.remove('dark');
+					if (!checkPlantUMLConsent(content, this.elements)) {
 						return;
 					}
+					
+					this.state.setTheme(theme);
+					this.state.setMarkdownText(content);
+					this.applyTheme(theme);
+					
+					await this.orchestrator.renderAll();
 				}
 				
-				state.setTheme('light');
-				state.setMarkdownText(content);
-				document.body.classList.remove('dark');
-				
-				await orchestrator.renderAll();
-			});
-			
-			renderDarkBtn.addEventListener('click', async () => {
-				const content = editor.value;
-				
-				// PlantUML security check (UI layer)
-				if (hasPlantUML(content)) {
-					const agreed = window.confirm(
-						`Security & Confidentiality Warning\n\n` +
-						`Your data will be sent to an external PlantUML server to create diagrams.\n\n` +
-						`Your Markdown -- [OK]→ 🌐\n\n` +
-						`Do you want to continue?`
-					);
-					
-					if (!agreed) {
-						editor.value = '';
-						preview.innerHTML = '';
+				/**
+				 * @param {string} theme
+				 */
+				applyTheme(theme) {
+					if (theme === 'dark') {
+						document.body.classList.add('dark');
+					} else {
 						document.body.classList.remove('dark');
+					}
+				}
+				
+				/**
+				 * @param {Event} e
+				 */
+				startPress(e) {
+					if (e.type === 'mousedown' && e.button !== 0) return;
+					this.isLongPress = false;
+					this.longPressTimer = setTimeout(() => {
+						this.isLongPress = true;
+						ModalController.show(this.elements.promptModal);
+					}, CONFIG.ui.longPressDuration);
+				}
+				
+				/**
+				 * @param {Event} e
+				 */
+				cancelPress(e) {
+					clearTimeout(this.longPressTimer);
+				}
+				
+				/**
+				 * @param {Event} e
+				 */
+				handleHelpClick(e) {
+					if (this.isLongPress) {
+						e.preventDefault();
+						e.stopPropagation();
+						this.isLongPress = false;
 						return;
 					}
+					ModalController.show(this.elements.helpModal);
 				}
 				
-				state.setTheme('dark');
-				state.setMarkdownText(content);
-				document.body.classList.add('dark');
-				
-				await orchestrator.renderAll();
-			});
-			
-			
-			// ========================================
-			// Event Handlers: Utility Buttons
-			// ========================================
-			
-			newTabBtn.addEventListener('click', () => {
-				window.open(window.location.href, '_blank');
-			});
-			
-			clearBtn.addEventListener('click', () => {
-				editor.value = '';
-				preview.innerHTML = '';
-				document.body.classList.remove('dark');
-			});
-			
-			
-			// ========================================
-			// Event Handlers: Help Button (Long Press)
-			// ========================================
-			
-			let pressTimer;
-			let isLongPress = false;
-			
-			function triggerLongPressAction() {
-				isLongPress = true;
-				if (promptModal) promptModal.style.display = "block";
-			}
-			
-			function startPress(e) {
-				if (e.type === 'mousedown' && e.button !== 0) return;
-				isLongPress = false;
-				pressTimer = setTimeout(triggerLongPressAction, 800);
-			}
-			
-			function cancelPress(e) {
-				clearTimeout(pressTimer);
-			}
-			
-			function handleHelpClick(e) {
-				if (isLongPress) {
-					e.preventDefault();
-					e.stopPropagation();
-					isLongPress = false;
-					return;
-				}
-				helpModal.style.display = "block";
-			}
-			
-			// PC (Mouse)
-			helpBtn.addEventListener('mousedown', startPress);
-			helpBtn.addEventListener('mouseup', cancelPress);
-			helpBtn.addEventListener('mouseleave', cancelPress);
-			
-			// Mobile (Touch)
-			helpBtn.addEventListener('touchstart', (e) => {
-				startPress(e);
-			});
-			helpBtn.addEventListener('touchend', (e) => {
-				cancelPress(e);
-				if (!isLongPress) {
-					e.preventDefault();
-					handleHelpClick(e);
-				}
-			});
-			
-			// Click event (PC fallback)
-			helpBtn.addEventListener('click', (e) => {
-				handleHelpClick(e);
-			});
-			
-			
-			// ========================================
-			// Event Handlers: Copy Prompt Button
-			// ========================================
-			
-			if (copyPromptBtn) {
-				copyPromptBtn.addEventListener('click', () => {
-					promptText.select();
-					promptText.setSelectionRange(0, 99999);
+				showCopySuccess() {
+					const originalText = this.elements.copyPromptBtn.textContent;
+					this.elements.copyPromptBtn.textContent = "Copied!";
 					
-					try {
-						const successful = document.execCommand('copy');
-						if (successful) {
-							showCopySuccess();
-						} else {
-							alert("Copy failed.");
-						}
-					} catch (err) {
-						alert("Browser denied copy.");
-					}
-				});
-			}
-			
-			function showCopySuccess() {
-				const originalText = copyPromptBtn.textContent;
-				copyPromptBtn.textContent = "Copied!";
-				
-				setTimeout(() => {
-					copyPromptBtn.textContent = originalText;
-					copyPromptBtn.style.backgroundColor = "";
-					promptModal.style.display = "none";
-				}, 1000);
+					setTimeout(() => {
+						this.elements.copyPromptBtn.textContent = originalText;
+						ModalController.hide(this.elements.promptModal);
+					}, CONFIG.ui.copyFeedbackDuration);
+				}
 			}
 			
 			
 			// ========================================
-			// Event Handlers: Modal Close
+			// Initialization
 			// ========================================
 			
-			closeSpan.onclick = function() {
-				helpModal.style.display = "none";
-			}
+			const elements = {
+				editor: document.getElementById('editor'),
+				preview: document.getElementById('preview'),
+				renderLightBtn: document.getElementById('renderLight'),
+				renderDarkBtn: document.getElementById('renderDark'),
+				newTabBtn: document.getElementById('newTabBtn'),
+				clearBtn: document.getElementById('clearBtn'),
+				helpBtn: document.getElementById('helpBtn'),
+				helpModal: document.getElementById('helpModal'),
+				promptModal: document.getElementById('promptModal'),
+				promptText: document.getElementById('promptText'),
+				copyPromptBtn: document.getElementById('copyPromptBtn')
+			};
 			
-			if (promptClose) {
-				promptClose.onclick = function() {
-					promptModal.style.display = "none";
-				}
-			}
+			const state = new ApplicationState();
+			const scrollManager = new ScrollManager(elements.preview);
+			const markdownRenderer = new MarkdownRenderer(elements.preview, marked, hljs);
+			const mermaidRenderer = new MermaidRenderer(elements.preview, mermaid);
+			const plantumlRenderer = new PlantUMLRenderer(elements.preview, plantumlEncoder);
+			const orchestrator = new RendererOrchestrator(
+				state,
+				markdownRenderer,
+				[mermaidRenderer, plantumlRenderer],
+				scrollManager,
+				elements.preview
+			);
 			
-			window.onclick = function(event) {
-				if (event.target == helpModal) {
-					helpModal.style.display = "none";
-				}
-				if (event.target == promptModal) {
-					promptModal.style.display = "none";
-				}
-			}
+			new UIController(orchestrator, state, elements);
 		</script>
 		
 	</body>
