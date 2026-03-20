@@ -116,6 +116,20 @@ for e in events:                                # Good: preserves original order
 for e in set(events):                           # Bad:  converting List to Set loses order without warning
 ```
 
+### 9. Text Encoding, Comments, and Messages
+
+- Use UTF-8 encoding without BOM for code files.
+- Use only ASCII characters in comments and messages.
+- Do not use Japanese.
+
+### 10. Class and Function
+
+- Keep each class and function under ~40 lines for clarity and maintainability.
+- Define one clear responsibility per class or function.
+- Use simple, descriptive names that reflect their behavior.
+- Keep constants, variables, and helpers well-separated and purpose-driven.
+- Avoid nesting or overloading logic—favor readability over cleverness.
+
 ---
 
 ## 📊 Code Review Checklist

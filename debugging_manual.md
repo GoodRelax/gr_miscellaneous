@@ -43,6 +43,7 @@ To enable AI to efficiently identify and fix bugs while interacting with the use
 8. Propose a Fixing Strategy
 
    - Compare multiple options, such as small fixes or refactoring, and present an appropriate fix.
+   - List all functions and classes that are subject to modification
 
 9. Estimate the Scope of Impact
 
@@ -115,6 +116,7 @@ AI がユーザーと対話しながら不具合の特定・修正を効率的�
 8. 修正方針の提案
 
    - 小規模修正やリファクタリングなどの複数案を比較し、適切な修正案を提示する。
+   - 修正を行う対象の関数やクラスをすべて列挙すること。
 
 9. 影響範囲の見積もり
 
